@@ -81,7 +81,7 @@ cron.schedule('*/1 * * * *', async() => {
                 console.log('There was an error compounding bot ' + bot.name)
             } else {
                 // log
-                console.log('Compounded ' + bot.name + ' from $' + basePrice + ' to $' + newBasePrice + ' with $' + profit + ' from deal ' + dealId)
+                console.log('Compounded ' + bot.name + ' from $' + basePrice + ' to $' + newBasePrice + ' with $' + profit + ' profit from deal ' + dealId)
 
                 // save deal to database so that it won't be compounded again
                 const compoundedDeal = new model({ dealId })
