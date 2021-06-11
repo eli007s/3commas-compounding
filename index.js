@@ -21,7 +21,7 @@ const payload = async (method, path, params) => {
             `${apiCredentials.url}${path}${querystring.stringify(params)}`,
             {
                 method: method,
-                timeout: 15000,
+                timeout: 60000,
                 agent: '',
                 headers: {
                     'APIKEY': apiCredentials.key,
@@ -48,6 +48,7 @@ cron.schedule('*/1 * * * *', async() => {
         const dealId = i.id
         const deal = await model.find({ dealId })
 
+        // if deal hasn't been registered yet, we're good to start our compounding magic
         if (deal.length === 0) {
             // get the bot attached to the deal
             const bot_id = i['bot_id']
@@ -63,7 +64,7 @@ cron.schedule('*/1 * * * *', async() => {
             const update = await payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, {
                 name: bot.name,
                 pairs: bot.pairs,
-                base_order_volume: newBasePrice,
+                base_order_volume: newBasePrice, // this is what we're interested in
                 take_profit: bot.take_profit,
                 safety_order_volume: bot.safety_order_volume,
                 martingale_volume_coefficient: bot.martingale_volume_coefficient,
@@ -80,7 +81,7 @@ cron.schedule('*/1 * * * *', async() => {
                 console.log('There was an error compounding bot ' + bot.name)
             } else {
                 // log
-                console.log('Compounded ' + bot.name + ' from $' + basePrice + ' to $' + newBasePrice)
+                console.log('Compounded ' + bot.name + ' from $' + basePrice + ' to $' + newBasePrice + ' with $' + profit)
 
                 // save deal to database so that it won't be compounded again
                 const compoundedDeal = new model({ dealId })
