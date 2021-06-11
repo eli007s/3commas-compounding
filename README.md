@@ -24,6 +24,6 @@ This uses `mongoosedb` to store and save the deal ID into a database to keep tra
 this will run once every minute. In the console you'll get results like these:
 
 ```
-Compounded MP DeFi Composite from $23.03 to $23.32 with $0.28916842 from deal  
-Compounded MP DeFi Composite from $23.32 to $23.67 with $0.34612493 from deal
+Compounded MP DeFi Composite from $23.03 to $23.32 with $0.28916842 from deal 123456
+Compounded MP DeFi Composite from $23.32 to $23.67 with $0.34612493 from deal 123457
 ```
