@@ -27,7 +27,9 @@ this will run once every minute. In the console you'll get results like these:
 
 ## Roadmap
 - [ ] reformat to make code modular
+- [ ] change data storage medium
 - [ ] add ability to compound grid bots
 - [ ] send you a text message everytime compounding occurs with Twilio
 - [ ] option to use Telegram to get messages when something happens
 - [ ] and/or Slack messages
+- [ ] provide guide on using AWS lambda functions to fire off the API
