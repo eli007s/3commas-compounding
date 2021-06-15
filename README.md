@@ -25,3 +25,9 @@ this will run once every minute. In the console you'll get results like these:
 
 ![API output](https://github.com/eli007s/3commas-compounding/blob/main/img/results.png?raw=true)
 
+## Roadmap
+- [ ] reformat to make code modular
+- [ ] add ability to compound grid bots
+- [ ] send you a text message everytime compounding occurs with Twilio
+- [ ] option to use Telegram to get messages when something happens
+- [ ] and/or Slack messages
