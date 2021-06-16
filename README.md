@@ -28,6 +28,7 @@ this will run once every minute. In the console you'll get results like these:
 ## Roadmap
 - [ ] reformat to make code modular
 - [ ] change data storage medium
+- [ ] options to specify how to distribute the profits. Into the base order size, safety orders, etc.
 - [ ] add ability to compound grid bots
 - [ ] send you a text message everytime compounding occurs with Twilio
 - [ ] option to use Telegram to get messages when something happens
