@@ -2,6 +2,8 @@
 
 This is a helper utility to take the profits from your completed deals and compound them to the bots base order size.
 
+Be aware that this will take your profit numbers and round them down. So `$0.147` will be calculated as `$0.14` and not `$0.15`.
+
 To get started copy `.env.example` to `.env` and fill in the fields.
 
 This uses `mongoosedb` to store and save the deal ID into a database to keep track of deals already compounded. 
