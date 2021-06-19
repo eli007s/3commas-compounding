@@ -118,5 +118,5 @@ const compound = async () => {
     })
 }
 
-cron.schedule('*/1 * * * *', compound(), {})
+cron.schedule('*/1 * * * *', () => compound(), {})
 // compound()
