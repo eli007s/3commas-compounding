@@ -54,19 +54,22 @@ cron.schedule('*/1 * * * *', async() => {
             const bot_id = i['bot_id']
             const bot = await payload('GET', `/public/api/ver1/bots/${bot_id}/show?`, { bot_id })
             const basePrice = bot.base_order_volume
-            const profit = i['final_profit']
+            const profit = (parseFloat(i['final_profit'])).toFixed(2) / 3
 
             // compound the profits from the deal to the bots base price
-            const newBasePrice = (parseFloat(basePrice) + parseFloat(profit)).toFixed(2)
+            // take 1/3 of the profit and compound to the base
+            const newBasePrice = profit
+            // take 2/3 of the profit and compound to the safe order base
+            const newSafetyOrderPrice = profit * 2
 
             // update bot with compounded base price
             // (the following keys are there because they are mandatory... dunno why)
             const update = await payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, {
                 name: bot.name,
                 pairs: bot.pairs,
-                base_order_volume: newBasePrice, // this is what we're interested in
+                base_order_volume: newBasePrice, // this is what we're interested in, compound 1/3 of if to the base
                 take_profit: bot.take_profit,
-                safety_order_volume: bot.safety_order_volume,
+                safety_order_volume: newSafetyOrderPrice, // compound the remaining 2/3'ds to the safety order
                 martingale_volume_coefficient: bot.martingale_volume_coefficient,
                 martingale_step_coefficient: bot.martingale_step_coefficient,
                 max_safety_orders: bot.max_safety_orders,
