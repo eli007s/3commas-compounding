@@ -69,6 +69,8 @@ const compound = async () => {
             // take 2/3 of the profit and compound to the safe order base
             const newSafetyOrderPrice = parseFloat(safetyOrderPrice) + parseFloat((profitSplit * 2))
 
+            const safetyOrderStepPercentage = bot['safety_order_step_percentage']
+
             // update bot with compounded base price
             // (the following keys are there because they are mandatory... dunno why)
             const update = await payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, {
@@ -87,18 +89,13 @@ const compound = async () => {
                 bot_id: bot.id
             })
 
-            if (update.error) {
-                console.log('There was an error compounding bot ' + bot['name'])
-                console.log('Base Profit - $' + baseProfit)
-                console.log('Profit Split - $' + profitSplit)
-                console.log('Old Base Price -  $' + baseOrderPrice)
-                console.log('New Base Price -  $' + newBasePrice)
-
-                console.log('Old Safety Price -  $' + safetyOrderPrice)
-                console.log('New Safety Price -  $' + newSafetyOrderPrice)
-            } else {
+            const log = (error) => {
                 // log
-                console.log('Compounded ' + bot.name)
+                if (error) {
+                    console.log('There was an error compounding bot ' + bot['name'])
+                } else {
+                    console.log('Compounded ' + bot.name)
+                }
                 console.log('Deal - ' + dealId)
 
                 console.log('Base Profit - $' + baseProfit)
@@ -108,7 +105,12 @@ const compound = async () => {
 
                 console.log('Old Safety Price -  $' + safetyOrderPrice)
                 console.log('New Safety Price -  $' + newSafetyOrderPrice)
+            }
 
+            if (update.error) {
+                log(true)
+            } else {
+                log()
                 // save deal to database so that it won't be compounded again
                 const compoundedDeal = new model({ dealId })
 
