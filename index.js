@@ -58,9 +58,9 @@ cron.schedule('*/1 * * * *', async() => {
 
             // compound the profits from the deal to the bots base price
             // take 1/3 of the profit and compound to the base
-            const newBasePrice = profit
+            const newBasePrice = profit + bot.base_order_volume
             // take 2/3 of the profit and compound to the safe order base
-            const newSafetyOrderPrice = profit * 2
+            const newSafetyOrderPrice = (profit * 2) + bot.safety_order_volume
 
             // update bot with compounded base price
             // (the following keys are there because they are mandatory... dunno why)
@@ -81,10 +81,17 @@ cron.schedule('*/1 * * * *', async() => {
             })
 
             if (update.error) {
-                console.log('There was an error compounding bot ' + bot.name)
+                console.log('There was an error compounding bot ' + bot.name, update)
             } else {
                 // log
-                console.log('Compounded ' + bot.name + ' from $' + basePrice + ' to $' + newBasePrice + ' with $' + profit + ' profit from deal ' + dealId)
+                console.log('Compounded ' + bot.name)
+                console.log('Deal - ' + dealId)
+
+                console.log('Old Base Price -  $' + basePrice)
+                console.log('New Base Price -  $' + newBasePrice)
+
+                console.log('New Safety Price -  $' + bot.safety_order_volume)
+                console.log('New Safety Price -  $' + newSafetyOrderPrice)
 
                 // save deal to database so that it won't be compounded again
                 const compoundedDeal = new model({ dealId })
