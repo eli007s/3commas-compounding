@@ -37,8 +37,12 @@ const payload = async (method, path, params) => {
     }
 }
 
-cron.schedule('*/1 * * * *', async() => {
+function roundDown(number, decimals) {
+    decimals = decimals || 0;
+    return ( Math.floor( number * Math.pow(10, decimals) ) / Math.pow(10, decimals) );
+}
 
+const compound = async () => {
     const data = await payload('GET', '/public/api/ver1/deals?', {
         scope: 'completed'
     })
@@ -53,14 +57,17 @@ cron.schedule('*/1 * * * *', async() => {
             // get the bot attached to the deal
             const bot_id = i['bot_id']
             const bot = await payload('GET', `/public/api/ver1/bots/${bot_id}/show?`, { bot_id })
-            const basePrice = bot.base_order_volume
-            const profit = (parseFloat(i['final_profit'])).toFixed(2) / 3
+            const baseOrderPrice = parseFloat(bot['base_order_volume']).toFixed(2)
+            const safetyOrderPrice = bot['safety_order_volume']
+            const baseProfit = roundDown(parseFloat(i['final_profit']), 2)
+            const profitSplit = roundDown(parseFloat(i['final_profit'] / 3), 2)
 
             // compound the profits from the deal to the bots base price
+            //
             // take 1/3 of the profit and compound to the base
-            const newBasePrice = profit + bot.base_order_volume
+            const newBasePrice = (parseFloat(profitSplit) + parseFloat(baseOrderPrice)).toFixed(2)
             // take 2/3 of the profit and compound to the safe order base
-            const newSafetyOrderPrice = (profit * 2) + bot.safety_order_volume
+            const newSafetyOrderPrice = parseFloat(safetyOrderPrice) + parseFloat((profitSplit * 2))
 
             // update bot with compounded base price
             // (the following keys are there because they are mandatory... dunno why)
@@ -81,16 +88,25 @@ cron.schedule('*/1 * * * *', async() => {
             })
 
             if (update.error) {
-                console.log('There was an error compounding bot ' + bot.name, update)
+                console.log('There was an error compounding bot ' + bot['name'])
+                console.log('Base Profit - $' + baseProfit)
+                console.log('Profit Split - $' + profitSplit)
+                console.log('Old Base Price -  $' + baseOrderPrice)
+                console.log('New Base Price -  $' + newBasePrice)
+
+                console.log('Old Safety Price -  $' + safetyOrderPrice)
+                console.log('New Safety Price -  $' + newSafetyOrderPrice)
             } else {
                 // log
                 console.log('Compounded ' + bot.name)
                 console.log('Deal - ' + dealId)
 
-                console.log('Old Base Price -  $' + basePrice)
+                console.log('Base Profit - $' + baseProfit)
+                console.log('Profit Split - $' + profitSplit)
+                console.log('Old Base Price -  $' + baseOrderPrice)
                 console.log('New Base Price -  $' + newBasePrice)
 
-                console.log('New Safety Price -  $' + bot.safety_order_volume)
+                console.log('Old Safety Price -  $' + safetyOrderPrice)
                 console.log('New Safety Price -  $' + newSafetyOrderPrice)
 
                 // save deal to database so that it won't be compounded again
@@ -100,4 +116,7 @@ cron.schedule('*/1 * * * *', async() => {
             }
         }
     })
-}, {})
+}
+
+//cron.schedule('*/1 * * * *', async() => compound(), {})
+compound()
