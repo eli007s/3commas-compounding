@@ -70,15 +70,16 @@ const compound = async () => {
             const newSafetyOrderPrice = parseFloat(safetyOrderPrice) + parseFloat((profitSplit * 2))
 
             const safetyOrderStepPercentage = bot['safety_order_step_percentage']
+            const safetyOrderMaxSize = bot['max_safety_orders']
 
             // update bot with compounded base price
-            // (the following keys are there because they are mandatory... dunno why)
+            // (the following keys are there because they are mandatory... a 3commas thing)
             const update = await payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, {
                 name: bot.name,
-                pairs: bot.pairs,
+                pairs: (bot['pairs'] + '').split(','),
                 base_order_volume: newBasePrice, // this is what we're interested in, compound 1/3 of if to the base
                 take_profit: bot.take_profit,
-                safety_order_volume: newSafetyOrderPrice, // compound the remaining 2/3'ds to the safety order
+                safety_order_volume: newSafetyOrderPrice, // compound the remaining 2/3 to the safety order
                 martingale_volume_coefficient: bot.martingale_volume_coefficient,
                 martingale_step_coefficient: bot.martingale_step_coefficient,
                 max_safety_orders: bot.max_safety_orders,
@@ -91,11 +92,9 @@ const compound = async () => {
 
             const log = (error) => {
                 // log
-                if (error) {
-                    console.log('There was an error compounding bot ' + bot['name'])
-                } else {
-                    console.log('Compounded ' + bot.name)
-                }
+                const prefix = error ? 'here was an error compounding bot ' : 'Compounded '
+
+                console.log(prefix +  bot['name'])
                 console.log('Deal - ' + dealId)
 
                 console.log('Base Profit - $' + baseProfit)
@@ -105,6 +104,8 @@ const compound = async () => {
 
                 console.log('Old Safety Price -  $' + safetyOrderPrice)
                 console.log('New Safety Price -  $' + newSafetyOrderPrice)
+                console.log('Pairs - ', (bot['pairs'] + '').split(','))
+                console.log('=====================')
             }
 
             if (update.error) {
