@@ -69,17 +69,20 @@ const compound = async () => {
             // take 2/3 of the profit and compound to the safe order base
             const newSafetyOrderPrice = parseFloat(safetyOrderPrice) + parseFloat((profitSplit * 2))
 
+            // pairs
+            const pairs = (bot['pairs'] + '').split(',')
+
             const safetyOrderStepPercentage = bot['safety_order_step_percentage']
             const safetyOrderMaxSize = bot['max_safety_orders']
 
             // update bot with compounded base price
             // (the following keys are there because they are mandatory... a 3commas thing)
-            const update = await payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, {
+            const updateParam = {
                 name: bot.name,
-                pairs: (bot['pairs'] + '').split(','),
+                pairs: pairs,
                 base_order_volume: newBasePrice, // this is what we're interested in, compound 1/3 of if to the base
                 take_profit: bot.take_profit,
-                safety_order_volume: newSafetyOrderPrice, // compound the remaining 2/3 to the safety order
+                safety_order_volume: newSafetyOrderPrice.toFixed(2), // compound the remaining 2/3 to the safety order
                 martingale_volume_coefficient: bot.martingale_volume_coefficient,
                 martingale_step_coefficient: bot.martingale_step_coefficient,
                 max_safety_orders: bot.max_safety_orders,
@@ -88,34 +91,39 @@ const compound = async () => {
                 take_profit_type: bot.take_profit_type,
                 strategy_list: bot.strategy_list,
                 bot_id: bot.id
-            })
-
-            const log = (error) => {
-                // log
-                const prefix = error ? 'here was an error compounding bot ' : 'Compounded '
-
-                console.log(prefix +  bot['name'])
-                console.log('Deal - ' + dealId)
-
-                console.log('Base Profit - $' + baseProfit)
-                console.log('Profit Split - $' + profitSplit)
-                console.log('Old Base Price -  $' + baseOrderPrice)
-                console.log('New Base Price -  $' + newBasePrice)
-
-                console.log('Old Safety Price -  $' + safetyOrderPrice)
-                console.log('New Safety Price -  $' + newSafetyOrderPrice)
-                console.log('Pairs - ', (bot['pairs'] + '').split(','))
-                console.log('=====================')
             }
 
-            if (update.error) {
-                log(true)
-            } else {
-                log()
-                // save deal to database so that it won't be compounded again
-                const compoundedDeal = new model({ dealId })
+            if (bot['base_order_volume_type'] !== 'percent') {
+                const update = await payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, updateParam)
 
-                await compoundedDeal.save()
+                const log = (error) => {
+                    // log
+                    const prefix = error ? 'here was an error compounding bot ' : 'Compounded '
+
+                    console.log(prefix +  bot['name'])
+                    console.log('Deal - ' + dealId)
+
+                    console.log(updateParam)
+                    /*console.log('Base Profit - $' + baseProfit)
+                    console.log('Profit Split - $' + profitSplit)
+                    console.log('Old Base Price -  $' + baseOrderPrice)
+                    console.log('New Base Price -  $' + newBasePrice)
+
+                    console.log('Old Safety Price -  $' + safetyOrderPrice)
+                    console.log('New Safety Price -  $' + newSafetyOrderPrice.toFixed(2))
+                    console.log('Pairs - ', pairs)*/
+                    console.log('=====================')
+                }
+
+                if (update.error) {
+                    log(true)
+                } else {
+                    log()
+                    // save deal to database so that it won't be compounded again
+                    const compoundedDeal = new model({ dealId })
+
+                    await compoundedDeal.save()
+                }
             }
         }
     })
