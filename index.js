@@ -1,41 +1,8 @@
 require('dotenv').config()
+
+const api = require('./api')
 const cron = require('node-cron')
-const querystring = require('querystring');
-const crypto = require('crypto')
-const fetch = require('node-fetch')
 const model = require('./model')
-const apiCredentials = {
-    url: 'https://api.3commas.io',
-    key: process.env.API_KEY,
-    secret: process.env.API_SECRET
-}
-
-const signature = (requestUri, reqData) => {
-    const request = requestUri + reqData
-    return crypto.createHmac('sha256', apiCredentials.secret).update(request).digest('hex')
-}
-
-const payload = async (method, path, params) => {
-    try {
-        let response = await fetch(
-            `${apiCredentials.url}${path}${querystring.stringify(params)}`,
-            {
-                method: method,
-                timeout: 60000,
-                agent: '',
-                headers: {
-                    'APIKEY': apiCredentials.key,
-                    'Signature': signature(path, querystring.stringify(params))
-                }
-            }
-        )
-
-        return await response.json()
-    } catch (e) {
-        console.log(e);
-        return false
-    }
-}
 
 function roundDown(number, decimals) {
     decimals = decimals || 0;
@@ -43,7 +10,7 @@ function roundDown(number, decimals) {
 }
 
 const compound = async () => {
-    const data = await payload('GET', '/public/api/ver1/deals?', {
+    const data = await api.payload('GET', '/public/api/ver1/deals?', {
         scope: 'completed'
     })
 
@@ -56,7 +23,7 @@ const compound = async () => {
         if (deal.length === 0) {
             // get the bot attached to the deal
             const bot_id = i['bot_id']
-            const bot = await payload('GET', `/public/api/ver1/bots/${bot_id}/show?`, { bot_id })
+            const bot = await api.payload('GET', `/public/api/ver1/bots/${bot_id}/show?`, { bot_id })
             const baseOrderPrice = parseFloat(bot['base_order_volume']).toFixed(2)
             const safetyOrderPrice = bot['safety_order_volume']
             const baseProfit = roundDown(parseFloat(i['final_profit']), 2)
@@ -72,6 +39,7 @@ const compound = async () => {
             // pairs
             //const pairs = (bot['pairs'] + '').split(',')
             const pairs = bot['pairs']
+            const name = bot['name']
 
             const safetyOrderStepPercentage = bot['safety_order_step_percentage']
             const safetyOrderMaxSize = bot['max_safety_orders']
@@ -79,29 +47,29 @@ const compound = async () => {
             // update bot with compounded base price
             // (the following keys are there because they are mandatory... a 3commas thing)
             const updateParam = {
-                name: bot.name,
+                name,
                 pairs,
                 base_order_volume: newBasePrice, // this is what we're interested in, compound 1/3 of if to the base
-                take_profit: bot.take_profit,
+                take_profit: bot['take_profit'],
                 safety_order_volume: newSafetyOrderPrice.toFixed(2), // compound the remaining 2/3 to the safety order
-                martingale_volume_coefficient: bot.martingale_volume_coefficient,
-                martingale_step_coefficient: bot.martingale_step_coefficient,
-                max_safety_orders: bot.max_safety_orders,
-                active_safety_orders_count: bot.active_safety_orders_count,
-                safety_order_step_percentage: bot.safety_order_step_percentage,
-                take_profit_type: bot.take_profit_type,
-                strategy_list: bot.strategy_list,
-                bot_id: bot.id
+                martingale_volume_coefficient: bot['martingale_volume_coefficient'],
+                martingale_step_coefficient: bot['martingale_step_coefficient'],
+                max_safety_orders: bot['max_safety_orders'],
+                active_safety_orders_count: bot['active_safety_orders_count'],
+                safety_order_step_percentage: bot['safety_order_step_percentage'],
+                take_profit_type: bot['take_profit_type'],
+                strategy_list: bot['strategy_list'],
+                bot_id: bot['id']
             }
 
             if (bot['base_order_volume_type'] !== 'percent') {
-                const update = await payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, updateParam)
-
+                //const update = await api.payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, updateParam)
+                const update = true
                 const log = (error) => {
                     // log
                     const prefix = error ? 'here was an error compounding bot ' : 'Compounded '
 
-                    console.log(prefix +  bot['name'])
+                    console.log(prefix + name)
                     console.log('Deal - ' + dealId)
 
                     console.log(updateParam)
