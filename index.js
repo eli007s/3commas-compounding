@@ -70,7 +70,8 @@ const compound = async () => {
             const newSafetyOrderPrice = parseFloat(safetyOrderPrice) + parseFloat((profitSplit * 2))
 
             // pairs
-            const pairs = (bot['pairs'] + '').split(',')
+            //const pairs = (bot['pairs'] + '').split(',')
+            const pairs = bot['pairs']
 
             const safetyOrderStepPercentage = bot['safety_order_step_percentage']
             const safetyOrderMaxSize = bot['max_safety_orders']
@@ -79,7 +80,7 @@ const compound = async () => {
             // (the following keys are there because they are mandatory... a 3commas thing)
             const updateParam = {
                 name: bot.name,
-                pairs: pairs,
+                pairs,
                 base_order_volume: newBasePrice, // this is what we're interested in, compound 1/3 of if to the base
                 take_profit: bot.take_profit,
                 safety_order_volume: newSafetyOrderPrice.toFixed(2), // compound the remaining 2/3 to the safety order
@@ -112,7 +113,7 @@ const compound = async () => {
                     console.log('Old Safety Price -  $' + safetyOrderPrice)
                     console.log('New Safety Price -  $' + newSafetyOrderPrice.toFixed(2))
                     console.log('Pairs - ', pairs)*/
-                    console.log('=====================')
+                    console.log("=====================\n")
                 }
 
                 if (update.error) {
