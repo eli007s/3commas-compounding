@@ -29,13 +29,6 @@ const compound = async () => {
             const baseProfit = roundDown(parseFloat(i['final_profit']), 2)
             const profitSplit = roundDown(parseFloat(i['final_profit'] / 3), 2)
 
-            // compound the profits from the deal to the bots base price
-            //
-            // take 1/3 of the profit and compound to the base
-            const newBasePrice = (parseFloat(profitSplit) + parseFloat(baseOrderPrice)).toFixed(2)
-            // take 2/3 of the profit and compound to the safe order base
-            const newSafetyOrderPrice = parseFloat(safetyOrderPrice) + parseFloat((profitSplit * 2))
-
             // pairs
             //const pairs = (bot['pairs'] + '').split(',')
             const pairs = bot['pairs']
@@ -43,6 +36,13 @@ const compound = async () => {
 
             const safetyOrderStepPercentage = bot['safety_order_step_percentage']
             const safetyOrderMaxSize = bot['max_safety_orders']
+
+            // compound the profits from the deal to the bots base price
+            //
+            // take 1/3 of the profit and compound to the base
+            const newBasePrice = (parseFloat(profitSplit) + parseFloat(baseOrderPrice)).toFixed(2)
+            // take 2/3 of the profit and compound to the safe order base
+            const newSafetyOrderPrice = (parseFloat(safetyOrderPrice) + parseFloat(profitSplit * 2)) / safetyOrderMaxSize
 
             // update bot with compounded base price
             // (the following keys are there because they are mandatory... a 3commas thing)
@@ -54,17 +54,22 @@ const compound = async () => {
                 safety_order_volume: newSafetyOrderPrice.toFixed(2), // compound the remaining 2/3 to the safety order
                 martingale_volume_coefficient: bot['martingale_volume_coefficient'],
                 martingale_step_coefficient: bot['martingale_step_coefficient'],
-                max_safety_orders: bot['max_safety_orders'],
+                max_safety_orders: safetyOrderMaxSize,
                 active_safety_orders_count: bot['active_safety_orders_count'],
-                safety_order_step_percentage: bot['safety_order_step_percentage'],
+                safety_order_step_percentage: safetyOrderStepPercentage,
                 take_profit_type: bot['take_profit_type'],
                 strategy_list: bot['strategy_list'],
                 bot_id: bot['id']
             }
 
             if (bot['base_order_volume_type'] !== 'percent') {
-                //const update = await api.payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, updateParam)
-                const update = true
+
+                // If you wan to preview the data before its saved and updated on your account, comment out this line
+                const update = await api.payload('PATCH', `/public/api/ver1/bots/${bot_id}/update?`, updateParam)
+
+                // and use this one instead
+                //const update = { error: true }
+
                 const log = (error) => {
                     // log
                     const prefix = error ? 'here was an error compounding bot ' : 'Compounded '
