@@ -27,7 +27,7 @@ const compound = async () => {
             const baseOrderPrice = parseFloat(bot['base_order_volume']).toFixed(2)
             const safetyOrderPrice = bot['safety_order_volume']
             const baseProfit = roundDown(parseFloat(i['final_profit']), 2)
-            const profitSplit = roundDown(parseFloat(i['final_profit'] / 2), 2)
+            const profitSplit = roundDown(parseFloat(i['final_profit'] / 3), 2)
 
             // pairs
             //const pairs = (bot['pairs'] + '').split(',')
@@ -42,7 +42,7 @@ const compound = async () => {
             // take 1/3 of the profit and compound to the base
             const newBasePrice = (parseFloat(profitSplit) + parseFloat(baseOrderPrice)).toFixed(2)
             // take 2/3 of the profit and compound to the safe order base
-            const newSafetyOrderPrice = (parseFloat(safetyOrderPrice) + parseFloat(profitSplit))
+            const newSafetyOrderPrice = (parseFloat(safetyOrderPrice) + parseFloat(profitSplit * 2))
 
             // update bot with compounded base price
             // (the following keys are there because they are mandatory... a 3commas thing)
