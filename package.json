@@ -3,6 +3,6 @@
     "dotenv": "^10.0.0",
     "mongoose": "^5.12.13",
     "node-cron": "^3.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.7"
   }
 }
